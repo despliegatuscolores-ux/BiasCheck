@@ -220,72 +220,79 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- PANTALLA 3: TOOLKIT DE MITIGACIÓN          -->
+        <!-- PANTALLA 3: TOOLKIT DE MITIGACIÓN (CNMV)   -->
         <!-- ========================================== -->
         <div x-show="currentTab === 'toolkit'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
             <div class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">Frameworks de Mitigación</h2>
-                <p class="text-gray-600 dark:text-gray-400">Estrategias mecánicas diseñadas para cortocircuitar la respuesta emocional y forzar el procesamiento analítico "Sistema 2" (Kahneman).</p>
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">Frameworks de Mitigación (Directrices CNMV)</h2>
+                <p class="text-gray-600 dark:text-gray-400">Estrategias mecánicas recomendadas por reguladores financieros para neutralizar el componente emocional en tus inversiones.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Herramienta 1 -->
+                <!-- Herramienta 1: Estandarizar -->
                 <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg flex items-center justify-center text-xl mb-4">
-                        <i class="fa-solid fa-gavel"></i>
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-clipboard-list"></i>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">Test del "Abogado del Diablo" Invertido</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Combate el <strong>Sesgo de Confirmación</strong>. Antes de comprar un activo del que estás seguro, fuérzate a encontrar argumentos en contra.</p>
-                    <div class="space-y-2 mt-4">
-                        <textarea class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-sm focus:ring-2 focus:ring-corporate-500 focus:outline-none dark:text-white placeholder-gray-400" rows="3" placeholder="Escribe aquí 3 razones lógicas, basadas en datos, por las que esta inversión podría fracasar estrepitosamente..."></textarea>
+                    <h3 class="text-lg font-bold mb-2">Estandarización de Procesos</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Mitiga el <strong>Sesgo de Anclaje y la Ilusión de Control</strong>. Crea reglas fijas de entrada y salida independientes del precio actual.</p>
+                    <div class="space-y-2 mt-4 text-sm text-gray-700 dark:text-gray-300">
+                        <label class="flex items-center space-x-2 bg-gray-50 dark:bg-slate-800 p-2 rounded">
+                            <input type="checkbox" class="rounded text-corporate-500">
+                            <span>¿He definido por escrito cuándo voy a vender (Stop-Loss / Take-Profit)?</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-gray-50 dark:bg-slate-800 p-2 rounded">
+                            <input type="checkbox" class="rounded text-corporate-500">
+                            <span>¿El precio actual refleja el valor real, o sigo anclado al precio que pagué?</span>
+                        </label>
                     </div>
                 </div>
 
-                <!-- Herramienta 2 -->
+                <!-- Herramienta 2: Automatizar -->
                 <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center text-xl mb-4">
-                        <i class="fa-solid fa-stopwatch"></i>
+                    <div class="w-12 h-12 bg-corporate-100 dark:bg-corporate-900/30 text-corporate-600 dark:text-corporate-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-robot"></i>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">Cooling-Off Period (Regla 24h/72h)</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Mitiga la <strong>Aversión a la Pérdida y Compras Impulsivas</strong>. Frena la urgencia artificial impuesta por el mercado.</p>
-                    <div class="bg-blue-50 dark:bg-slate-800 p-4 rounded-lg">
+                    <h3 class="text-lg font-bold mb-2">Automatización Financiera (DCA)</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Combate el <strong>Descuento Hiperbólico y el Efecto Manada</strong>. Elimina el "cuándo comprar" programando órdenes periódicas.</p>
+                    <div class="bg-corporate-50 dark:bg-slate-800 p-4 rounded-lg">
                         <ul class="text-sm space-y-2 text-gray-700 dark:text-gray-300">
-                            <li><i class="fa-regular fa-square text-blue-500 mr-2"></i> Inversión < $1,000 = Esperar 24 horas.</li>
-                            <li><i class="fa-regular fa-square text-blue-500 mr-2"></i> Inversión > $1,000 = Esperar 72 horas.</li>
-                            <li><i class="fa-regular fa-square text-blue-500 mr-2"></i> ¿Pasó el FOMO (Miedo a perderse algo)? Si es no, no inviertas.</li>
+                            <li><i class="fa-solid fa-check text-corporate-500 mr-2"></i> Configura una transferencia automática el día 1 de cada mes.</li>
+                            <li><i class="fa-solid fa-check text-corporate-500 mr-2"></i> Compra el activo sin mirar las noticias ni si está "caro" o "barato".</li>
+                            <li><i class="fa-solid fa-check text-corporate-500 mr-2"></i> Evita retirar ganancias pequeñas por impulsos a corto plazo.</li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- Herramienta 3 -->
+                <!-- Herramienta 3: Diversificar -->
                 <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
                     <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center text-xl mb-4">
-                        <i class="fa-solid fa-chess-knight"></i>
+                        <i class="fa-solid fa-chart-pie"></i>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">Matriz de Objetividad</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Neutraliza el <strong>Comportamiento de Rebaño</strong>. Separa el ruido social de los fundamentales.</p>
+                    <h3 class="text-lg font-bold mb-2">Filtro de Diversificación</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Neutraliza el <strong>Efecto Halo y el Exceso de Confianza</strong>. No concentres tu capital por entusiasmo hacia una sola empresa o CEO.</p>
                     <div class="grid grid-cols-2 gap-2 text-sm text-center">
-                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">¿Lo entiendo al 100%?</div>
-                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">¿Lo compraría si nadie hablara de ello?</div>
-                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">¿Genera flujo de caja real?</div>
-                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">¿Es dinero que puedo perder?</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">Max 5% en un activo individual</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">Exposición global (Geográfica)</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">Varios sectores económicos</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">Renta fija vs. Variable</div>
                     </div>
                 </div>
 
-                <!-- Herramienta 4 -->
+                <!-- Herramienta 4: Abogado del Diablo -->
                 <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-                    <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg flex items-center justify-center text-xl mb-4">
-                        <i class="fa-solid fa-skull-crossbones"></i>
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-scale-unbalanced"></i>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">Autopsia Pre-Mortem</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Previene el <strong>Exceso de Confianza</strong>. Viaja mentalmente un año hacia el futuro imaginando que la inversión falló.</p>
-                    <div class="p-3 border-l-4 border-orange-500 bg-orange-50 dark:bg-slate-800 text-sm text-gray-700 dark:text-gray-300 italic">
-                        "Es diciembre del próximo año. He perdido el 50% del capital en esta decisión. ¿Cuál fue la causa exacta que ignoré hoy?"
+                    <h3 class="text-lg font-bold mb-2">Test del "Abogado del Diablo"</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Evita el <strong>Sesgo de Confirmación y Aversión a las Pérdidas</strong>. Busca activamente la perspectiva contraria.</p>
+                    <div class="p-3 border-l-4 border-red-500 bg-red-50 dark:bg-slate-800 text-sm text-gray-700 dark:text-gray-300 italic">
+                        "Antes de comprar o vender por pánico, debo encontrar, leer y comprender al menos dos informes analíticos de personas que opinen exactamente lo contrario a mí."
                     </div>
                 </div>
             </div>
         </div>
-
+       
         <!-- ========================================== -->
         <!-- PANTALLA 4: SIMULADOR DE ESCENARIOS        -->
         <!-- ========================================== -->
