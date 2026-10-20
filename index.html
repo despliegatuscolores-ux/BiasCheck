@@ -600,6 +600,20 @@
                     this.changeTab('results');
                 },
 
+                resetQuiz() {
+                    // Borramos la memoria local y reseteamos el estado
+                    localStorage.removeItem('decisionLabData');
+                    this.quizCompleted = false;
+                    this.quizStarted = false;
+                    this.currentQuestionIndex = 0;
+                    this.calculatedBiases = {};
+                    Object.keys(this.scores).forEach(k => this.scores[k] = 0);
+                    this.resetSimulator();
+                    
+                    // Volvemos al inicio del diagnóstico
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
                 saveData() {
                     localStorage.setItem('decisionLabData', JSON.stringify({
                         biases: this.calculatedBiases,
