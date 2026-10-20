@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DecisionLab Finance | Behavioral Economics Toolkit</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        corporate: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            800: '#115e59',
+                            900: '#134e4a',
+                            950: '#042f2e',
+                        },
+                        slate: {
+                            850: '#152033',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        [x-cloak] { display: none !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(10px); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-slate-900 dark:text-gray-100 font-sans antialiased transition-colors duration-300" 
+      x-data="decisionLabApp()" 
+      x-init="initApp()"
+      :class="{ 'dark': isDarkMode }">
+
+    <!-- Navegación -->
+    <nav class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-brain text-corporate-600 dark:text-corporate-500 text-2xl mr-3"></i>
+                    <span class="font-bold text-xl tracking-tight text-gray-900 dark:text-white">DecisionLab<span class="text-corporate-600 dark:text-corporate-500">Finance</span></span>
+                </div>
+                
+                <!-- Menú Desktop -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <template x-for="tab in tabs" :key="tab.id">
+                        <button @click="changeTab(tab.id)" 
+                                :class="currentTab === tab.id ? 'bg-corporate-50 text-corporate-700 dark:bg-slate-800 dark:text-corporate-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-slate-800'"
+                                class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                            <i :class="tab.icon" class="mr-2"></i><span x-text="tab.name"></span>
+                        </button>
+                    </template>
+                    <button @click="toggleTheme()" class="ml-4 p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800 rounded-full transition-colors">
+                        <i class="fa-solid" :class="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
+                    </button>
+                </div>
+
+                <!-- Menú Móvil Toggle -->
+                <div class="flex items-center md:hidden">
+                    <button @click="toggleTheme()" class="mr-2 p-2 text-gray-500 dark:text-gray-400">
+                        <i class="fa-solid" :class="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
+                    </button>
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menú Móvil Desplegable -->
+        <div x-show="mobileMenuOpen" x-cloak class="md:hidden bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <template x-for="tab in tabs" :key="tab.id">
+                    <button @click="changeTab(tab.id); mobileMenuOpen = false" 
+                            :class="currentTab === tab.id ? 'bg-corporate-50 text-corporate-700 dark:bg-slate-800 dark:text-corporate-400' : 'text-gray-600 dark:text-gray-300'"
+                            class="block w-full text-left px-3 py-2 rounded-md text-base font-medium">
+                        <i :class="tab.icon" class="mr-2 w-5 text-center"></i><span x-text="tab.name"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenedor Principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 custom-scrollbar">
+
+        <!-- ========================================== -->
+        <!-- PANTALLA 1: INICIO Y DIAGNÓSTICO           -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'diagnostic'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            
+            <!-- Bienvenida -->
+            <div x-show="!quizStarted && !quizCompleted" class="text-center max-w-3xl mx-auto py-12">
+                <div class="inline-block p-4 rounded-full bg-corporate-100 dark:bg-corporate-900/30 text-corporate-600 dark:text-corporate-500 mb-6">
+                    <i class="fa-solid fa-microscope text-4xl"></i>
+                </div>
+                <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl mb-6 text-gray-900 dark:text-white">
+                    Descubre tu <span class="text-transparent bg-clip-text bg-gradient-to-r from-corporate-500 to-blue-600">ADN Financiero</span>
+                </h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                    El cerebro humano está programado evolutivamente para sobrevivir, no para invertir. Utilizamos atajos mentales (heurísticas) que a menudo resultan en decisiones financieras subóptimas. Este motor de diagnóstico clínico identificará tus vulnerabilidades conductuales para proteger tu patrimonio.
+                </p>
+                <button @click="startQuiz()" class="px-8 py-4 bg-corporate-600 hover:bg-corporate-700 text-white rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                    Comenzar Diagnóstico de Racionalidad
+                </button>
+            </div>
+
+            <!-- Interfaz del Test -->
+            <div x-show="quizStarted && !quizCompleted" class="max-w-3xl mx-auto bg-white dark:bg-slate-850 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
+                <div class="bg-gray-50 dark:bg-slate-800 px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Progreso del Diagnóstico</span>
+                    <span class="text-sm font-bold text-corporate-600 dark:text-corporate-400" x-text="`${currentQuestionIndex + 1} / ${questions.length}`"></span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-slate-700 h-2">
+                    <div class="bg-corporate-500 h-2 transition-all duration-500 ease-out" :style="`width: ${((currentQuestionIndex) / questions.length) * 100}%`"></div>
+                </div>
+                
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white leading-snug" x-text="questions[currentQuestionIndex].text"></h3>
+                    
+                    <div class="space-y-4">
+                        <template x-for="(option, index) in questions[currentQuestionIndex].options" :key="index">
+                            <button @click="selectAnswer(option)" 
+                                    class="w-full text-left p-5 rounded-xl border-2 border-gray-100 dark:border-slate-700 hover:border-corporate-500 dark:hover:border-corporate-500 hover:bg-corporate-50 dark:hover:bg-slate-800 transition-all group flex items-center justify-between">
+                                <span class="text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white font-medium" x-text="option.text"></span>
+                                <i class="fa-solid fa-chevron-right text-gray-300 dark:text-gray-600 group-hover:text-corporate-500 transition-colors"></i>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PANTALLA 2: DASHBOARD DE RESULTADOS        -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'results'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            <div x-show="!quizCompleted" class="text-center py-20">
+                <i class="fa-solid fa-lock text-5xl text-gray-300 dark:text-slate-600 mb-4"></i>
+                <h2 class="text-2xl font-bold text-gray-600 dark:text-gray-400">Datos Insuficientes</h2>
+                <p class="text-gray-500 mt-2">Completa el diagnóstico inicial para generar tu mapa de sesgos.</p>
+                <button @click="changeTab('diagnostic')" class="mt-6 text-corporate-600 hover:text-corporate-700 font-medium underline">Ir al Diagnóstico</button>
+            </div>
+
+            <div x-show="quizCompleted">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Columna Gráfico -->
+                    <div class="w-full md:w-1/2 bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800">
+                        <h2 class="text-xl font-bold mb-2 flex items-center"><i class="fa-solid fa-chart-radar mr-2 text-corporate-500"></i> Mapa de Calor de Sesgos</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Puntuación porcentual de vulnerabilidad cognitiva.</p>
+                        <div class="relative h-80 w-full flex justify-center items-center">
+                            <canvas id="biasRadarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Columna Análisis -->
+                    <div class="w-full md:w-1/2 space-y-4">
+                        <h2 class="text-xl font-bold mb-4">Desglose Clínico de Vulnerabilidades</h2>
+                        <div class="h-[400px] overflow-y-auto custom-scrollbar pr-2 space-y-4">
+                            <template x-for="(score, biasKey) in calculatedBiases" :key="biasKey">
+                                <div class="bg-white dark:bg-slate-850 p-5 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                                    <!-- Indicador de severidad -->
+                                    <div class="absolute left-0 top-0 bottom-0 w-1" :class="getSeverityColor(score)"></div>
+                                    
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-gray-900 dark:text-white capitalize" x-text="biasDefinitions[biasKey].name"></h4>
+                                        <span class="px-2 py-1 rounded text-xs font-bold" :class="getSeverityBg(score)" x-text="score + '%'"></span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3" x-text="biasDefinitions[biasKey].desc"></p>
+                                    <div class="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg text-sm border-l-2 border-corporate-500">
+                                        <span class="font-semibold text-gray-700 dark:text-gray-300"><i class="fa-solid fa-lightbulb text-yellow-500 mr-1"></i> Ejemplo en la vida real:</span>
+                                        <span class="text-gray-600 dark:text-gray-400" x-text="biasDefinitions[biasKey].example"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PANTALLA 3: TOOLKIT DE MITIGACIÓN          -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'toolkit'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">Frameworks de Mitigación</h2>
+                <p class="text-gray-600 dark:text-gray-400">Estrategias mecánicas diseñadas para cortocircuitar la respuesta emocional y forzar el procesamiento analítico "Sistema 2" (Kahneman).</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Herramienta 1 -->
+                <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-gavel"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Test del "Abogado del Diablo" Invertido</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Combate el <strong>Sesgo de Confirmación</strong>. Antes de comprar un activo del que estás seguro, fuérzate a encontrar argumentos en contra.</p>
+                    <div class="space-y-2 mt-4">
+                        <textarea class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-sm focus:ring-2 focus:ring-corporate-500 focus:outline-none dark:text-white placeholder-gray-400" rows="3" placeholder="Escribe aquí 3 razones lógicas, basadas en datos, por las que esta inversión podría fracasar estrepitosamente..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Herramienta 2 -->
+                <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-stopwatch"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Cooling-Off Period (Regla 24h/72h)</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Mitiga la <strong>Aversión a la Pérdida y Compras Impulsivas</strong>. Frena la urgencia artificial impuesta por el mercado.</p>
+                    <div class="bg-blue-50 dark:bg-slate-800 p-4 rounded-lg">
+                        <ul class="text-sm space-y-2 text-gray-700 dark:text-gray-300">
+                            <li><i class="fa-regular fa-square text-blue-500 mr-2"></i> Inversión < $1,000 = Esperar 24 horas.</li>
+                            <li><i class="fa-regular fa-square text-blue-500 mr-2"></i> Inversión > $1,000 = Esperar 72 horas.</li>
+                            <li><i class="fa-regular fa-square text-blue-500 mr-2"></i> ¿Pasó el FOMO (Miedo a perderse algo)? Si es no, no inviertas.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Herramienta 3 -->
+                <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-chess-knight"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Matriz de Objetividad</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Neutraliza el <strong>Comportamiento de Rebaño</strong>. Separa el ruido social de los fundamentales.</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm text-center">
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">¿Lo entiendo al 100%?</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">¿Lo compraría si nadie hablara de ello?</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">¿Genera flujo de caja real?</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">¿Es dinero que puedo perder?</div>
+                    </div>
+                </div>
+
+                <!-- Herramienta 4 -->
+                <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-skull-crossbones"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Autopsia Pre-Mortem</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Previene el <strong>Exceso de Confianza</strong>. Viaja mentalmente un año hacia el futuro imaginando que la inversión falló.</p>
+                    <div class="p-3 border-l-4 border-orange-500 bg-orange-50 dark:bg-slate-800 text-sm text-gray-700 dark:text-gray-300 italic">
+                        "Es diciembre del próximo año. He perdido el 50% del capital en esta decisión. ¿Cuál fue la causa exacta que ignoré hoy?"
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PANTALLA 4: SIMULADOR DE ESCENARIOS        -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'simulator'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            
+            <div x-show="!quizCompleted" class="text-center py-20">
+                <i class="fa-solid fa-gamepad text-5xl text-gray-300 dark:text-slate-600 mb-4"></i>
+                <h2 class="text-2xl font-bold text-gray-600 dark:text-gray-400">Simulador Bloqueado</h2>
+                <p class="text-gray-500 mt-2">Realiza el diagnóstico para personalizar las advertencias del simulador.</p>
+                <button @click="changeTab('diagnostic')" class="mt-6 px-4 py-2 bg-corporate-600 text-white rounded-lg">Realizar Diagnóstico</button>
+            </div>
+
+            <div x-show="quizCompleted" class="max-w-4xl mx-auto">
+                <div class="mb-8 text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">Simulador de Presión</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Enfréntate a situaciones de mercado. El sistema evaluará tu respuesta basándose en tu perfil de sesgos previamente detectado.</p>
+                </div>
+
+                <div class="space-y-8">
+                    <template x-for="(scenario, index) in scenarios" :key="index">
+                        <div class="bg-white dark:bg-slate-850 rounded-2xl shadow-md border border-gray-200 dark:border-slate-700 overflow-hidden">
+                            <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                                <span class="font-bold flex items-center"><i class="fa-solid fa-bolt text-yellow-400 mr-2"></i> Escenario <span x-text="index + 1" class="ml-1"></span></span>
+                                <span class="text-xs font-mono bg-slate-900 px-2 py-1 rounded text-gray-300">Market_Sim_v1</span>
+                            </div>
+                            <div class="p-6">
+                                <p class="text-lg font-medium text-gray-900 dark:text-white mb-6" x-text="scenario.context"></p>
+                                
+                                <div class="space-y-3" x-show="!scenario.answered">
+                                    <template x-for="(action, aIdx) in scenario.actions" :key="aIdx">
+                                        <button @click="handleScenarioAnswer(index, action)" 
+                                                class="w-full text-left p-4 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+                                            <span x-text="action.text"></span>
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <!-- Feedback del Simulador -->
+                                <div x-show="scenario.answered" x-transition class="mt-4 p-5 rounded-lg border" :class="scenario.feedbackStyle">
+                                    <h4 class="font-bold mb-2 flex items-center">
+                                        <i :class="scenario.feedbackIcon" class="mr-2"></i> Evaluación Conductual:
+                                    </h4>
+                                    <p class="text-sm" x-html="scenario.feedbackText"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="text-center mt-8 pb-10">
+                    <button @click="resetSimulator()" class="text-corporate-600 dark:text-corporate-400 hover:underline"><i class="fa-solid fa-rotate-right mr-1"></i> Reiniciar Simulador</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PANTALLA 5: PLAN DE ACCIÓN PERSONALIZADO   -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'plan'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Protocolo de Decisión Personal</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Tus reglas inquebrantables de inversión (Algoritmo personal).</p>
+                    </div>
+                    <button @click="exportPlan()" class="hidden md:flex px-4 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg shadow hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors items-center">
+                        <i class="fa-solid fa-file-arrow-down mr-2"></i> Exportar (.txt)
+                    </button>
+                </div>
+
+                <div class="bg-white dark:bg-slate-850 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-6 md:p-8">
+                    
+                    <div x-show="quizCompleted" class="mb-6 bg-corporate-50 dark:bg-slate-800 p-4 rounded-lg border border-corporate-100 dark:border-slate-600">
+                        <h4 class="text-sm font-bold text-corporate-800 dark:text-corporate-300 mb-2"><i class="fa-solid fa-robot mr-1"></i> Sugerencia algorítmica basada en tu perfil:</h4>
+                        <p class="text-sm text-gray-700 dark:text-gray-300" x-text="getPersonalizedRuleSuggestion()"></p>
+                    </div>
+
+                    <textarea x-model="userPlan" 
+                              class="w-full h-96 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl p-6 font-mono text-sm focus:ring-2 focus:ring-corporate-500 focus:outline-none dark:text-gray-300 custom-scrollbar resize-none"
+                              placeholder="Ejemplo:&#10;1. Nunca comprar un activo el mismo día que lo descubro (Regla 72h).&#10;2. Automatizar las aportaciones mensuales para eliminar el sesgo de actualidad.&#10;3. Si una acción cae un 15% por razones fundamentales, vender mecánicamente (Stop-loss)..."></textarea>
+                    
+                    <button @click="exportPlan()" class="md:hidden mt-4 w-full px-4 py-3 bg-slate-800 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg shadow hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors flex justify-center items-center">
+                        <i class="fa-solid fa-file-arrow-down mr-2"></i> Exportar Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script de Aplicación (Alpine.js Data) -->
+    <script>
+        function decisionLabApp() {
+            return {
+                isDarkMode: true,
+                currentTab: 'diagnostic',
+                mobileMenuOpen: false,
+                quizStarted: false,
+                quizCompleted: false,
+                currentQuestionIndex: 0,
+                chartInstance: null,
+                userPlan: "REGLAS DE INVERSIÓN ESTRUCTURADAS\n=================================\n\n1. \n2. \n3. ",
+                
+                tabs: [
+                    { id: 'diagnostic', name: 'Diagnóstico', icon: 'fa-solid fa-list-check' },
+                    { id: 'results', name: 'Mapa de Calor', icon: 'fa-solid fa-chart-pie' },
+                    { id: 'toolkit', name: 'Toolkit', icon: 'fa-solid fa-toolbox' },
+                    { id: 'simulator', name: 'Simulador', icon: 'fa-solid fa-vr-cardboard' },
+                    { id: 'plan', name: 'Plan de Acción', icon: 'fa-solid fa-file-signature' }
+                ],
+
+                biasDefinitions: {
+                    loss_aversion: { name: 'Aversión a la Pérdida', desc: 'El dolor psicológico de perder dinero es el doble de intenso que la alegría de ganar la misma cantidad.', example: 'Vender fondos sólidos durante un pánico temporal en el mercado para "cortar el dolor".' },
+                    confirmation: { name: 'Sesgo de Confirmación', desc: 'Buscar, interpretar y recordar información que confirme preconcepciones, ignorando datos contrarios.', example: 'Solo leer foros de inversores que apoyan ciegamente la criptomoneda que ya compraste.' },
+                    disposition: { name: 'Efecto Disposición', desc: 'Tendencia a vender activos con ganancias demasiado pronto y mantener activos con pérdidas demasiado tiempo.', example: 'Vender acciones de Apple que suben un 10% para asegurar ganancia, pero conservar una acción tecnológica basura que cayó un 40% esperando "quedar a mano".' },
+                    sunk_cost: { name: 'Falacia del Costo Hundido', desc: 'Continuar invirtiendo dinero, tiempo o esfuerzo en un proyecto perdedor solo por lo que ya se ha invertido.', example: 'Inyectar más dinero a un negocio que quiebra mes a mes "porque ya he metido 50.000€ en él".' },
+                    recency: { name: 'Sesgo de Actualidad', desc: 'Dar mayor peso a los eventos más recientes, asumiendo que las tendencias actuales continuarán indefinidamente.', example: 'Asumir que el mercado inmobiliario nunca caerá porque ha subido ininterrumpidamente los últimos 3 años.' },
+                    overconfidence: { name: 'Exceso de Confianza', desc: 'Sobreestimar las propias habilidades analíticas y predictivas financieras frente al promedio.', example: 'Hacer day-trading creyendo que puedes vencer sistemáticamente a algoritmos institucionales y analistas de Wall Street.' },
+                    herd: { name: 'Comportamiento de Rebaño', desc: 'Imitar las acciones de un grupo mayoritario (amigos, redes sociales) asumiendo que ellos "saben algo que tú no".', example: 'Comprar una acción meme solo porque es Trending Topic y tus compañeros de trabajo hablan de ella.' }
+                },
+
+                // Raw scores
+                scores: {
+                    loss_aversion: 0, confirmation: 0, disposition: 0, sunk_cost: 0, recency: 0, overconfidence: 0, herd: 0
+                },
+                
+                // Max possible scores to calculate percentages
+                maxScores: {
+                    loss_aversion: 0, confirmation: 0, disposition: 0, sunk_cost: 0, recency: 0, overconfidence: 0, herd: 0
+                },
+
+                calculatedBiases: {},
+
+                // 12 Preguntas Estrictas
+                questions: [
+                    {
+                        text: "1. Tienes la opción de recibir 500€ seguros ahora mismo, o lanzar una moneda: si sale cara ganas 1.000€, si sale cruz no ganas nada. ¿Qué eliges?",
+                        options: [
+                            { text: "Los 500€ seguros. No me arriesgo.", bias: 'loss_aversion', weight: 10 },
+                            { text: "Lanzo la moneda. El valor esperado matemáticamente es el mismo.", bias: 'loss_aversion', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "2. Tu portafolio general ha caído un 15% en una semana debido a noticias macroeconómicas negativas globales. ¿Cuál es tu reacción primaria?",
+                        options: [
+                            { text: "Siento mucha ansiedad, reviso la app del banco obsesivamente y considero vender todo.", bias: 'loss_aversion', weight: 10 },
+                            { text: "No hago nada o aprovecho para comprar más barato siguiendo mi estrategia a largo plazo.", bias: 'loss_aversion', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "3. Descubres una empresa de inteligencia artificial y te encanta su visión. Al investigar para invertir, ¿qué sueles hacer?",
+                        options: [
+                            { text: "Busco noticias que validen su potencial y opiniones de analistas que recomienden 'Comprar'.", bias: 'confirmation', weight: 10 },
+                            { text: "Busco explícitamente los reportes de analistas que aconsejan 'Vender' para ver los riesgos.", bias: 'confirmation', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "4. Estás a punto de comprar una casa para invertir. El día antes de firmar, descubres un problema estructural costoso, pero ya imaginaste cómo será decorarla. ¿Qué haces?",
+                        options: [
+                            { text: "Minimizo el problema en mi cabeza, la compro igual porque 'es la indicada'.", bias: 'confirmation', weight: 10 },
+                            { text: "Pauso la firma y calculo fríamente el retorno de inversión ajustado al nuevo costo de reparación.", bias: 'confirmation', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "5. Necesitas liquidez inmediata. Tienes la Acción A (ganas un 20%) y la Acción B (pierdes un 20%). ¿Cuál vendes?",
+                        options: [
+                            { text: "Vendo la Acción A. Aseguro ganancias y espero que la B se recupere para no materializar la pérdida.", bias: 'disposition', weight: 10 },
+                            { text: "Analizo los fundamentales actuales. Probablemente venda la B si su modelo de negocio está fallando.", bias: 'disposition', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "6. Pagaste 1.000€ por un curso de trading avanzado. A las 2 horas te das cuenta de que el instructor es un fraude y el contenido es inútil (no hay reembolso). ¿Qué haces?",
+                        options: [
+                            { text: "Termino las 40 horas del curso. Ya pagué 1.000€, tengo que sacarle algún provecho.", bias: 'sunk_cost', weight: 10 },
+                            { text: "Cierro el curso de inmediato. El dinero ya se perdió, mi tiempo vale más que seguir viendo basura.", bias: 'sunk_cost', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "7. Compraste acciones de una startup a 50€. Hoy cotiza a 15€ porque han perdido a su cliente principal. Tu analista de confianza te dice que la empresa morirá.",
+                        options: [
+                            { text: "Las mantengo. No quiero asumir la pérdida, esperaré a que vuelva a subir a 50€ para vender.", bias: 'sunk_cost', weight: 10 },
+                            { text: "Las vendo por 15€ y reinvierto ese capital remanente en una empresa con futuro.", bias: 'sunk_cost', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "8. El mercado de valores ha subido un promedio del 2% mensual durante los últimos 6 meses sin ninguna corrección. ¿Qué crees que pasará el próximo mes?",
+                        options: [
+                            { text: "Seguirá subiendo. La tendencia es clara y el mercado está fuerte.", bias: 'recency', weight: 10 },
+                            { text: "Es imposible predecirlo, matemáticamente la probabilidad de una corrección aumenta.", bias: 'recency', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "9. Sinceramente, ¿cómo calificarías tu intuición e inteligencia financiera en comparación con la media de inversores retail?",
+                        options: [
+                            { text: "Definitivamente por encima de la media. Suelo anticiparme al mercado.", bias: 'overconfidence', weight: 10 },
+                            { text: "En la media o por debajo. Sé que competir contra el mercado es casi imposible a corto plazo.", bias: 'overconfidence', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "10. Has acertado tres operaciones de inversión especulativas seguidas, ganando un 40% de rentabilidad. ¿A qué se debe?",
+                        options: [
+                            { text: "A mi capacidad de análisis de mercado y habilidad táctica.", bias: 'overconfidence', weight: 10 },
+                            { text: "Principalmente a la suerte o a que estamos en un mercado alcista (Bull Market).", bias: 'overconfidence', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "11. Todos tus amigos cercanos están invirtiendo en un nuevo activo digital incomprensible, presumiendo grandes retornos rápidos en sus redes sociales. ¿Qué haces?",
+                        options: [
+                            { text: "Pongo al menos una pequeña cantidad de dinero por si acaso (FOMO). No quiero ser el único fuera.", bias: 'herd', weight: 10 },
+                            { text: "Los ignoro por completo si no entiendo cómo genera valor subyacente dicho activo.", bias: 'herd', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "12. Tu cuñado, en una cena familiar, menciona un 'chivatazo' sobre una acción petrolera desconocida que se disparará la próxima semana. Todos parecen interesados.",
+                        options: [
+                            { text: "Compro algunas acciones el lunes a primera hora para aprovechar el chivatazo antes que el resto.", bias: 'herd', weight: 10 },
+                            { text: "Dudo de los 'chivatazos'. Si ha llegado a mi cuñado, el mercado ya lo tiene descontado.", bias: 'herd', weight: 0 }
+                        ]
+                    }
+                ],
+
+                scenarios: [
+                    {
+                        context: "Noticia de última hora: El índice S&P 500 acaba de caer un 7% en un solo día por un dato de inflación sorpresa. Tienes gran parte de tu patrimonio invertido a largo plazo.",
+                        actions: [
+                            { text: "A) Vender la mitad de las posiciones para frenar la sangría y recomprar más abajo.", impact: "loss_aversion" },
+                            { text: "B) Cerrar la app de noticias y seguir con el plan de aportaciones periódicas establecido.", impact: "rational" },
+                            { text: "C) Buscar artículos en internet que confirmen que se acerca el apocalipsis financiero.", impact: "confirmation" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    },
+                    {
+                        context: "Has comprado acciones a $100. Ahora valen $60. La compañía acaba de anunciar que cambia de CEO porque su modelo de negocio está obsoleto.",
+                        actions: [
+                            { text: "A) Mantener a muerte. No pierdo hasta que no vendo. Quizás el nuevo CEO haga magia.", impact: "sunk_cost" },
+                            { text: "B) Vender y asumir el error. Utilizar el capital restante ($60) en activos de mejor calidad.", impact: "rational" },
+                            { text: "C) Comprar más acciones para 'promediar a la baja' y así recuperar la inversión más rápido.", impact: "overconfidence" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    },
+                    {
+                        context: "Un influencer financiero que sigues sube un video recomendando invertir hoy mismo en 'QuantumToken' antes de que llegue a $10. Dice que es la oportunidad del año.",
+                        actions: [
+                            { text: "A) Estudiar el Whitepaper, la liquidez y el equipo técnico durante días ignorando el precio actual.", impact: "rational" },
+                            { text: "B) Comprar inmediatamente una posición pequeña. Todo el mundo en los comentarios está ganando.", impact: "herd" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    }
+                ],
+
+                initApp() {
+                    // Inicializar maxScores
+                    this.questions.forEach(q => {
+                        let maxWeight = 0;
+                        q.options.forEach(opt => {
+                            if (opt.weight > maxWeight) maxWeight = opt.weight;
+                        });
+                        this.maxScores[q.options[0].bias] += maxWeight;
+                    });
+
+                    // Check LocalStorage
+                    const savedData = localStorage.getItem('decisionLabData');
+                    if (savedData) {
+                        const parsed = JSON.parse(savedData);
+                        this.calculatedBiases = parsed.biases || {};
+                        this.userPlan = parsed.plan || this.userPlan;
+                        if (Object.keys(this.calculatedBiases).length > 0) {
+                            this.quizCompleted = true;
+                            this.currentTab = 'results';
+                            setTimeout(() => this.renderRadarChart(), 100);
+                        }
+                    }
+
+                    // Check theme preference
+                    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        this.isDarkMode = true;
+                    } else {
+                        this.isDarkMode = false;
+                    }
+                },
+
+                toggleTheme() {
+                    this.isDarkMode = !this.isDarkMode;
+                    localStorage.theme = this.isDarkMode ? 'dark' : 'light';
+                    if (this.currentTab === 'results' && this.quizCompleted) {
+                        setTimeout(() => this.renderRadarChart(), 50); // Redibujar gráfico con nuevos colores
+                    }
+                },
+
+                changeTab(tabId) {
+                    this.currentTab = tabId;
+                    if (tabId === 'results' && this.quizCompleted) {
+                        setTimeout(() => this.renderRadarChart(), 50);
+                    }
+                },
+
+                startQuiz() {
+                    this.quizStarted = true;
+                    this.currentQuestionIndex = 0;
+                    // Reset scores
+                    Object.keys(this.scores).forEach(k => this.scores[k] = 0);
+                },
+
+                selectAnswer(option) {
+                    this.scores[option.bias] += option.weight;
+                    
+                    if (this.currentQuestionIndex < this.questions.length - 1) {
+                        this.currentQuestionIndex++;
+                    } else {
+                        this.finishQuiz();
+                    }
+                },
+
+                finishQuiz() {
+                    this.quizCompleted = true;
+                    // Calculate percentages
+                    Object.keys(this.scores).forEach(key => {
+                        const max = this.maxScores[key];
+                        this.calculatedBiases[key] = max > 0 ? Math.round((this.scores[key] / max) * 100) : 0;
+                        // Add some base noise if 0, so chart doesn't look completely empty (clinical baseline)
+                        if(this.calculatedBiases[key] === 0) this.calculatedBiases[key] = 10; 
+                    });
+
+                    this.saveData();
+                    this.changeTab('results');
+                },
+
+                saveData() {
+                    localStorage.setItem('decisionLabData', JSON.stringify({
+                        biases: this.calculatedBiases,
+                        plan: this.userPlan
+                    }));
+                },
+
+                renderRadarChart() {
+                    if (this.chartInstance) {
+                        this.chartInstance.destroy();
+                    }
+
+                    const ctx = document.getElementById('biasRadarChart').getContext('2d');
+                    
+                    const labels = Object.keys(this.calculatedBiases).map(k => this.biasDefinitions[k].name);
+                    const data = Object.values(this.calculatedBiases);
+                    
+                    const textColor = this.isDarkMode ? '#e2e8f0' : '#475569';
+                    const gridColor = this.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+                    this.chartInstance = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Nivel de Vulnerabilidad (%)',
+                                data: data,
+                                backgroundColor: 'rgba(20, 184, 166, 0.4)', // Corporate 500 alpha
+                                borderColor: 'rgba(20, 184, 166, 1)',
+                                pointBackgroundColor: 'rgba(13, 148, 136, 1)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgba(20, 184, 166, 1)',
+                                borderWidth: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                r: {
+                                    angleLines: { color: gridColor },
+                                    grid: { color: gridColor },
+                                    pointLabels: {
+                                        color: textColor,
+                                        font: { family: 'Inter', size: 11, weight: '600' }
+                                    },
+                                    ticks: {
+                                        display: false, // Ocultar números intermedios para limpiar UI
+                                        min: 0,
+                                        max: 100
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                },
+
+                getSeverityColor(score) {
+                    if (score >= 70) return 'bg-red-500';
+                    if (score >= 40) return 'bg-yellow-500';
+                    return 'bg-green-500';
+                },
+
+                getSeverityBg(score) {
+                    if (score >= 70) return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400';
+                    if (score >= 40) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400';
+                    return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400';
+                },
+
+                handleScenarioAnswer(scenarioIndex, action) {
+                    const scenario = this.scenarios[scenarioIndex];
+                    scenario.answered = true;
+
+                    if (action.impact === 'rational') {
+                        scenario.feedbackStyle = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-400';
+                        scenario.feedbackIcon = 'fa-solid fa-check-circle';
+                        scenario.feedbackText = 'Decisión Sistema 2 (Analítica). Has logrado sortear el estrés emocional del escenario aplicando raciocinio.';
+                    } else {
+                        // Comprobar si el sesgo del error es alto en el usuario
+                        const userBiasScore = this.calculatedBiases[action.impact] || 0;
+                        let warningLevel = '';
+                        
+                        if (userBiasScore >= 70) {
+                            warningLevel = '<strong>¡CUIDADO! Esta es tu zona de mayor vulnerabilidad.</strong> ';
+                            scenario.feedbackStyle = 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400';
+                        } else {
+                            scenario.feedbackStyle = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400';
+                        }
+                        
+                        scenario.feedbackIcon = 'fa-solid fa-triangle-exclamation';
+                        scenario.feedbackText = `${warningLevel} Has sido víctima del <strong>${this.biasDefinitions[action.impact].name}</strong>. Revisar Toolkit para mitigación.`;
+                    }
+                },
+
+                resetSimulator() {
+                    this.scenarios.forEach(s => s.answered = false);
+                },
+
+                getPersonalizedRuleSuggestion() {
+                    if(!this.quizCompleted) return "";
+                    // Encontrar el sesgo más alto
+                    let maxBias = Object.keys(this.calculatedBiases).reduce((a, b) => this.calculatedBiases[a] > this.calculatedBiases[b] ? a : b);
+                    
+                    const rules = {
+                        loss_aversion: "Obligatorio: Establecer órdenes de stop-loss automatizadas en el momento de la compra para que la máquina venda por ti sin intervención emocional.",
+                        confirmation: "Obligatorio: Buscar 3 tesis de inversión en contra (bajistas) antes de ejecutar cualquier compra a largo plazo.",
+                        disposition: "Obligatorio: Revisar el portafolio basado en valoraciones fundamentales actuales, no en el precio de compra original.",
+                        sunk_cost: "Obligatorio: Evaluar activos perdedores con la pregunta: 'Si hoy tuviera el capital en efectivo, ¿compraría este activo al precio actual?'. Si es no, vender.",
+                        recency: "Obligatorio: Analizar siempre gráficos en marcos temporales amplios (5-10 años) antes de asumir que una tendencia de corto plazo durará.",
+                        overconfidence: "Obligatorio: Indexar al menos el 80% del capital a fondos pasivos (ej. SP500, MSCI World) y limitar el trading táctico al 20%.",
+                        herd: "Obligatorio: Aplicar el Cooling-off period (72 horas) para cualquier inversión que provenga de una recomendación social o mediática."
+                    };
+
+                    return rules[maxBias] || "Automatiza tus finanzas para minimizar la fricción en la toma de decisiones diaria.";
+                },
+
+                exportPlan() {
+                    this.saveData(); // Save textarea content first
+                    const blob = new Blob([this.userPlan], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const date = new Date().toISOString().split('T')[0];
+                    link.download = `DecisionLab_Plan_${date}.txt`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
