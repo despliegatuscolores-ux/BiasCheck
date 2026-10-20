@@ -146,4 +146,605 @@
 
             <!-- Interfaz del Test -->
             <div x-show="quizStarted && !quizCompleted" class="max-w-3xl mx-auto bg-white dark:bg-slate-850 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-                <div class="bg-gray-
+                <div class="bg-gray-50 dark:bg-slate-800 px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Progreso del Diagnóstico</span>
+                    <span class="text-sm font-bold text-corporate-600 dark:text-corporate-400" x-text="`${currentQuestionIndex + 1} / ${questions.length}`"></span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-slate-700 h-2">
+                    <div class="bg-corporate-500 h-2 transition-all duration-500 ease-out" :style="`width: ${((currentQuestionIndex) / questions.length) * 100}%`"></div>
+                </div>
+                
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white leading-snug" x-text="questions[currentQuestionIndex].text"></h3>
+                    
+                    <div class="space-y-4">
+                        <template x-for="(option, index) in questions[currentQuestionIndex].options" :key="index">
+                            <button @click="selectAnswer(option)" 
+                                    class="w-full text-left p-5 rounded-xl border-2 border-gray-100 dark:border-slate-700 hover:border-corporate-500 dark:hover:border-corporate-500 hover:bg-corporate-50 dark:hover:bg-slate-800 transition-all group flex items-center justify-between">
+                                <span class="text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white font-medium" x-text="option.text"></span>
+                                <i class="fa-solid fa-chevron-right text-gray-300 dark:text-gray-600 group-hover:text-corporate-500 transition-colors"></i>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PANTALLA 2: DASHBOARD DE RESULTADOS        -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'results'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            <div x-show="!quizCompleted" class="text-center py-20">
+                <i class="fa-solid fa-lock text-5xl text-gray-300 dark:text-slate-600 mb-4"></i>
+                <h2 class="text-2xl font-bold text-gray-600 dark:text-gray-400">Datos Insuficientes</h2>
+                <p class="text-gray-500 mt-2">Completa el diagnóstico inicial para generar tu mapa de sesgos.</p>
+                <button @click="changeTab('diagnostic')" class="mt-6 text-corporate-600 hover:text-corporate-700 font-medium underline">Ir al Diagnóstico</button>
+            </div>
+
+            <div x-show="quizCompleted">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Columna Gráfico -->
+                    <div class="w-full md:w-1/2 bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800">
+                        <h2 class="text-xl font-bold mb-2 flex items-center"><i class="fa-solid fa-chart-radar mr-2 text-corporate-500"></i> Mapa de Calor de Sesgos</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Puntuación porcentual de vulnerabilidad cognitiva.</p>
+                        <div class="relative h-80 w-full flex justify-center items-center">
+                            <canvas id="biasRadarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Columna Análisis -->
+                    <div class="w-full md:w-1/2 space-y-4">
+                        <h2 class="text-xl font-bold mb-4">Desglose Clínico de Vulnerabilidades</h2>
+                        <div class="h-[400px] overflow-y-auto custom-scrollbar pr-2 space-y-4">
+                            <template x-for="(score, biasKey) in calculatedBiases" :key="biasKey">
+                                <div class="bg-white dark:bg-slate-850 p-5 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                                    <!-- Indicador de severidad -->
+                                    <div class="absolute left-0 top-0 bottom-0 w-1" :class="getSeverityColor(score)"></div>
+                                    
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-gray-900 dark:text-white capitalize" x-text="biasDefinitions[biasKey].name"></h4>
+                                        <span class="px-2 py-1 rounded text-xs font-bold" :class="getSeverityBg(score)" x-text="score + '%'"></span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3" x-text="biasDefinitions[biasKey].desc"></p>
+                                    <div class="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg text-sm border-l-2 border-corporate-500">
+                                        <span class="font-semibold text-gray-700 dark:text-gray-300"><i class="fa-solid fa-lightbulb text-yellow-500 mr-1"></i> Ejemplo en la vida real:</span>
+                                        <span class="text-gray-600 dark:text-gray-400" x-text="biasDefinitions[biasKey].example"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PANTALLA 3: TOOLKIT DE MITIGACIÓN (CNMV)   -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'toolkit'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">Frameworks de Mitigación (Directrices CNMV)</h2>
+                <p class="text-gray-600 dark:text-gray-400">Estrategias mecánicas recomendadas por reguladores financieros para neutralizar el componente emocional en tus inversiones.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Herramienta 1: Estandarizar -->
+                <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Estandarización de Procesos</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Mitiga el <strong>Sesgo de Anclaje y la Ilusión de Control</strong>. Crea reglas fijas de entrada y salida independientes del precio actual.</p>
+                    <div class="space-y-2 mt-4 text-sm text-gray-700 dark:text-gray-300">
+                        <label class="flex items-center space-x-2 bg-gray-50 dark:bg-slate-800 p-2 rounded">
+                            <input type="checkbox" class="rounded text-corporate-500">
+                            <span>¿He definido por escrito cuándo voy a vender (Stop-Loss / Take-Profit)?</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-gray-50 dark:bg-slate-800 p-2 rounded">
+                            <input type="checkbox" class="rounded text-corporate-500">
+                            <span>¿El precio actual refleja el valor real, o sigo anclado al precio que pagué?</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Herramienta 2: Automatizar -->
+                <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-corporate-100 dark:bg-corporate-900/30 text-corporate-600 dark:text-corporate-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Automatización Financiera (DCA)</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Combate el <strong>Descuento Hiperbólico y el Efecto Manada</strong>. Elimina el "cuándo comprar" programando órdenes periódicas.</p>
+                    <div class="bg-corporate-50 dark:bg-slate-800 p-4 rounded-lg">
+                        <ul class="text-sm space-y-2 text-gray-700 dark:text-gray-300">
+                            <li><i class="fa-solid fa-check text-corporate-500 mr-2"></i> Configura una transferencia automática el día 1 de cada mes.</li>
+                            <li><i class="fa-solid fa-check text-corporate-500 mr-2"></i> Compra el activo sin mirar las noticias ni si está "caro" o "barato".</li>
+                            <li><i class="fa-solid fa-check text-corporate-500 mr-2"></i> Evita retirar ganancias pequeñas por impulsos a corto plazo.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Herramienta 3: Diversificar -->
+                <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Filtro de Diversificación</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Neutraliza el <strong>Efecto Halo y el Exceso de Confianza</strong>. No concentres tu capital por entusiasmo hacia una sola empresa o CEO.</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm text-center">
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">Max 5% en un activo individual</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">Exposición global (Geográfica)</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">Varios sectores económicos</div>
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 rounded">Renta fija vs. Variable</div>
+                    </div>
+                </div>
+
+                <!-- Herramienta 4: Abogado del Diablo -->
+                <div class="bg-white dark:bg-slate-850 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-scale-unbalanced"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Test del "Abogado del Diablo"</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Evita el <strong>Sesgo de Confirmación y Aversión a las Pérdidas</strong>. Busca activamente la perspectiva contraria.</p>
+                    <div class="p-3 border-l-4 border-red-500 bg-red-50 dark:bg-slate-800 text-sm text-gray-700 dark:text-gray-300 italic">
+                        "Antes de comprar o vender por pánico, debo encontrar, leer y comprender al menos dos informes analíticos de personas que opinen exactamente lo contrario a mí."
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========================================== -->
+        <!-- PANTALLA 4: SIMULADOR DE ESCENARIOS        -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'simulator'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            
+            <div x-show="!quizCompleted" class="text-center py-20">
+                <i class="fa-solid fa-gamepad text-5xl text-gray-300 dark:text-slate-600 mb-4"></i>
+                <h2 class="text-2xl font-bold text-gray-600 dark:text-gray-400">Simulador Bloqueado</h2>
+                <p class="text-gray-500 mt-2">Realiza el diagnóstico para personalizar las advertencias del simulador.</p>
+                <button @click="changeTab('diagnostic')" class="mt-6 px-4 py-2 bg-corporate-600 text-white rounded-lg">Realizar Diagnóstico</button>
+            </div>
+
+            <div x-show="quizCompleted" class="max-w-4xl mx-auto">
+                <div class="mb-8 text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">Simulador de Presión</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Enfréntate a situaciones de mercado. El sistema evaluará tu respuesta basándose en tu perfil de sesgos previamente detectado.</p>
+                </div>
+
+                <div class="space-y-8">
+                    <template x-for="(scenario, index) in scenarios" :key="index">
+                        <div class="bg-white dark:bg-slate-850 rounded-2xl shadow-md border border-gray-200 dark:border-slate-700 overflow-hidden">
+                            <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                                <span class="font-bold flex items-center"><i class="fa-solid fa-bolt text-yellow-400 mr-2"></i> Escenario <span x-text="index + 1" class="ml-1"></span></span>
+                                <span class="text-xs font-mono bg-slate-900 px-2 py-1 rounded text-gray-300">Market_Sim_v1</span>
+                            </div>
+                            <div class="p-6">
+                                <p class="text-lg font-medium text-gray-900 dark:text-white mb-6" x-text="scenario.context"></p>
+                                
+                                <div class="space-y-3" x-show="!scenario.answered">
+                                    <template x-for="(action, aIdx) in scenario.actions" :key="aIdx">
+                                        <button @click="handleScenarioAnswer(index, action)" 
+                                                class="w-full text-left p-4 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+                                            <span x-text="action.text"></span>
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <!-- Feedback del Simulador -->
+                                <div x-show="scenario.answered" x-transition class="mt-4 p-5 rounded-lg border" :class="scenario.feedbackStyle">
+                                    <h4 class="font-bold mb-2 flex items-center">
+                                        <i :class="scenario.feedbackIcon" class="mr-2"></i> Evaluación Conductual:
+                                    </h4>
+                                    <p class="text-sm" x-html="scenario.feedbackText"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="text-center mt-8 pb-10">
+                    <button @click="resetSimulator()" class="text-corporate-600 dark:text-corporate-400 hover:underline"><i class="fa-solid fa-rotate-right mr-1"></i> Reiniciar Simulador</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PANTALLA 5: PLAN DE ACCIÓN PERSONALIZADO   -->
+        <!-- ========================================== -->
+        <div x-show="currentTab === 'plan'" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter-from" x-cloak>
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Protocolo de Decisión Personal</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Tus reglas inquebrantables de inversión (Algoritmo personal).</p>
+                    </div>
+                    <button @click="exportPlan()" class="hidden md:flex px-4 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg shadow hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors items-center">
+                        <i class="fa-solid fa-file-arrow-down mr-2"></i> Exportar (.txt)
+                    </button>
+                </div>
+
+                <div class="bg-white dark:bg-slate-850 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-6 md:p-8">
+                    
+                    <div x-show="quizCompleted" class="mb-6 bg-corporate-50 dark:bg-slate-800 p-4 rounded-lg border border-corporate-100 dark:border-slate-600">
+                        <h4 class="text-sm font-bold text-corporate-800 dark:text-corporate-300 mb-2"><i class="fa-solid fa-robot mr-1"></i> Sugerencia algorítmica basada en tu perfil:</h4>
+                        <p class="text-sm text-gray-700 dark:text-gray-300" x-text="getPersonalizedRuleSuggestion()"></p>
+                    </div>
+
+                    <textarea x-model="userPlan" 
+                              class="w-full h-96 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl p-6 font-mono text-sm focus:ring-2 focus:ring-corporate-500 focus:outline-none dark:text-gray-300 custom-scrollbar resize-none"
+                              placeholder="Escribe tus reglas..."></textarea>
+                    
+                    <button @click="exportPlan()" class="md:hidden mt-4 w-full px-4 py-3 bg-slate-800 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg shadow hover:bg-slate-700 dark:hover:bg-gray-200 transition-colors flex justify-center items-center">
+                        <i class="fa-solid fa-file-arrow-down mr-2"></i> Exportar Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script de Aplicación (Alpine.js Data) -->
+    <script>
+        function decisionLabApp() {
+            return {
+                isDarkMode: true,
+                currentTab: 'diagnostic',
+                mobileMenuOpen: false,
+                quizStarted: false,
+                quizCompleted: false,
+                currentQuestionIndex: 0,
+                chartInstance: null,
+                userPlan: "REGLAS DE INVERSIÓN (Basado en recomendaciones CNMV)\n======================================================\n\n1. ESTANDARIZAR: Mis reglas de venta en caso de caída son...\n2. AUTOMATIZAR: Todos los días [DÍA] invertiré automáticamente [CANTIDAD]€ en...\n3. DIVERSIFICAR: Ninguna acción individual representará más del [X]% de mi cartera.\n4. ",
+                
+                tabs: [
+                    { id: 'diagnostic', name: 'Diagnóstico', icon: 'fa-solid fa-list-check' },
+                    { id: 'results', name: 'Mapa de Calor', icon: 'fa-solid fa-chart-pie' },
+                    { id: 'toolkit', name: 'Toolkit', icon: 'fa-solid fa-toolbox' },
+                    { id: 'simulator', name: 'Simulador', icon: 'fa-solid fa-vr-cardboard' },
+                    { id: 'plan', name: 'Plan de Acción', icon: 'fa-solid fa-file-signature' }
+                ],
+
+                // Taxonomía estricta de la CNMV
+                biasDefinitions: {
+                    overconfidence: { name: 'Exceso de confianza', desc: 'Creer que se sabe más de lo que realmente se sabe, sobreestimando ganancias e infravalorando riesgos.', example: 'Hacer day-trading pensando que puedes batir al mercado consistentemente por tu "intuición".' },
+                    loss_aversion: { name: 'Aversión a las pérdidas', desc: 'Sentir el dolor de perder dinero con más intensidad que la alegría de ganarlo.', example: 'Mantener activos en pérdidas esperando "empatar", o vender rápido lo que sube por miedo a perder lo ganado.' },
+                    confirmation: { name: 'Sesgo de confirmación', desc: 'Buscar únicamente noticias o gráficos que refuercen la idea de que tu inversión va bien.', example: 'Ignorar advertencias sobre la deuda de una empresa y solo leer foros de fans de la acción.' },
+                    anchoring: { name: 'Sesgo de anclaje', desc: 'Tomar un dato inicial (como el precio de compra) como referencia absoluta.', example: 'Negarte a vender una acción que ha empeorado porque "yo la compré a 50 y no la vendo por menos".' },
+                    herd: { name: 'Efecto manada (Prueba Social)', desc: 'Comprar o vender un activo solo porque "todo el mundo lo está haciendo" o por FOMO.', example: 'Invertir en una criptomoneda desconocida solo porque tus amigos presumen de ella en redes.' },
+                    halo: { name: 'Efecto halo', desc: 'Juzgar la calidad de una empresa basándose en un único factor superficial.', example: 'Comprar acciones porque el CEO es muy carismático o el producto tiene un diseño bonito, sin mirar sus finanzas.' },
+                    control_illusion: { name: 'Ilusión de control', desc: 'Pensar que se puede influir en el mercado o en el rumbo de un activo aleatorio.', example: 'Creer que trazar líneas en un gráfico te permite controlar y predecir exactamente lo que hará el precio.' },
+                    hyperbolic: { name: 'Descuento hiperbólico', desc: 'Preferir una recompensa pequeña e inmediata en lugar de esperar mayores beneficios a largo plazo.', example: 'Retirar unas ganancias del 5% hoy para comprar un capricho, arruinando el interés compuesto de tu jubilación.' }
+                },
+
+                scores: { overconfidence: 0, loss_aversion: 0, confirmation: 0, anchoring: 0, herd: 0, halo: 0, control_illusion: 0, hyperbolic: 0 },
+                maxScores: { overconfidence: 0, loss_aversion: 0, confirmation: 0, anchoring: 0, herd: 0, halo: 0, control_illusion: 0, hyperbolic: 0 },
+                calculatedBiases: {},
+
+                // 12 Preguntas alineadas a los sesgos de la CNMV
+                questions: [
+                    {
+                        text: "1. ¿Cómo calificas tu capacidad para elegir en qué acciones específicas invertir frente a un fondo indexado global?",
+                        options: [
+                            { text: "Confío plenamente en mi criterio para encontrar empresas ganadoras y batir al mercado.", bias: 'overconfidence', weight: 10 },
+                            { text: "Asumo que es muy difícil ganarle al mercado; prefiero diversificar en fondos.", bias: 'overconfidence', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "2. Tu cartera global ha caído un 15% en un mes por pánico general en el mercado. ¿Cuál es tu reacción natural?",
+                        options: [
+                            { text: "Me genera mucha angustia, considero vender para detener la sangría.", bias: 'loss_aversion', weight: 10 },
+                            { text: "No me afecta demasiado, es parte de la volatilidad esperada. Incluso aporto más.", bias: 'loss_aversion', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "3. Compraste acciones de una empresa tecnológica porque admiras a su CEO, que es famoso y muy visionario en redes sociales.",
+                        options: [
+                            { text: "Es un motivo de peso. Un líder inspirador garantiza el éxito financiero a largo plazo.", bias: 'halo', weight: 10 },
+                            { text: "El CEO es marketing. Solo invierto si el balance de resultados y la deuda son sólidos.", bias: 'halo', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "4. Estás investigando una empresa en la que ya has invertido mucho dinero. Al leer análisis en internet:",
+                        options: [
+                            { text: "Inconscientemente busco y me detengo en artículos que dicen que la acción va a subir.", bias: 'confirmation', weight: 10 },
+                            { text: "Busco activamente los informes que recomiendan 'Vender' para ver si me he equivocado.", bias: 'confirmation', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "5. Compraste una acción a 100€. Tras un mal año por problemas de la empresa, cotiza a 40€. Has analizado que su modelo de negocio está obsoleto.",
+                        options: [
+                            { text: "La mantengo. No quiero materializar la pérdida y espero que vuelva a los 100€ originales.", bias: 'anchoring', weight: 10 },
+                            { text: "La vendo a 40€. Me olvido del precio que pagué y uso ese dinero en algo mejor.", bias: 'anchoring', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "6. En las noticias y en tu grupo de amigos no se habla de otra cosa: un nuevo activo está haciendo rica a mucha gente rápido.",
+                        options: [
+                            { text: "Meto algo de dinero rápidamente. No quiero ser el único que se quede fuera (FOMO).", bias: 'herd', weight: 10 },
+                            { text: "Me mantengo al margen. Si está en las noticias, la oportunidad real ya pasó.", bias: 'herd', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "7. Tu inversión ha generado un modesto +5% en pocos meses. Tienes un plan a 10 años, pero...",
+                        options: [
+                            { text: "Saco las ganancias ahora mismo para darme un capricho o asegurar el verde.", bias: 'hyperbolic', weight: 10 },
+                            { text: "No toco nada. Entiendo que la magia del interés compuesto necesita décadas.", bias: 'hyperbolic', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "8. Pasas horas al día mirando gráficos de velas y trazando líneas de tendencia en tu plataforma.",
+                        options: [
+                            { text: "Siento que haciendo esto tengo más control sobre mis resultados financieros.", bias: 'control_illusion', weight: 10 },
+                            { text: "Sé que esto no influye en nada, el mercado hace lo que quiere. Prefiero automatizar.", bias: 'control_illusion', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "9. Un amigo te recomienda una app de inversión porque 'su interfaz es súper moderna y tiene modo oscuro'.",
+                        options: [
+                            { text: "La pruebo y meto dinero. Si la app es buena, sus productos de inversión también lo serán.", bias: 'halo', weight: 10 },
+                            { text: "La interfaz da igual. Reviso qué comisiones ocultan y quién los regula antes de usarlos.", bias: 'halo', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "10. La empresa que posees acaba de perder un juicio multimillonario y sus fundamentos cambian radicalmente.",
+                        options: [
+                            { text: "Justifico la mala noticia pensando que el mercado exagera y sigo aferrado a mi idea original.", bias: 'confirmation', weight: 10 },
+                            { text: "Acepto que mi tesis inicial se rompió y actualizo mi estrategia inmediatamente.", bias: 'confirmation', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "11. El mercado bursátil subió un 20% el año pasado. Al planificar tus finanzas para los próximos 3 años...",
+                        options: [
+                            { text: "Asumo que ganaré dinero y retiro mis ahorros para invertirlos todos juntos hoy mismo.", bias: 'overconfidence', weight: 10 },
+                            { text: "Asumo rendimientos medios históricos (7%) y aporto periódicamente por si el mercado cae.", bias: 'overconfidence', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "12. Tienes una acción que compraste a 20€. Hoy vale 25€, pero las perspectivas de la empresa son mediocres.",
+                        options: [
+                            { text: "La vendo rápido para llevarme esos 5€ de ganancia antes de que desaparezcan.", bias: 'loss_aversion', weight: 10 },
+                            { text: "La vendo porque es mediocre, no por el anclaje a los 5€ de beneficio.", bias: 'loss_aversion', weight: 0 }
+                        ]
+                    }
+                ],
+
+                scenarios: [
+                    {
+                        context: "Noticia: El Banco Central anuncia una política que desploma tu inversión estrella un 8% en un día. Tu plan era a 15 años.",
+                        actions: [
+                            { text: "A) Vender todo inmediatamente para evitar perder más.", impact: "loss_aversion" },
+                            { text: "B) Cerrar la pantalla y dejar que la aportación automatizada actúe el mes que viene.", impact: "rational" },
+                            { text: "C) Sentarte a trazar líneas en el gráfico para 'adivinar' dónde rebotará.", impact: "control_illusion" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    },
+                    {
+                        context: "Has comprado acciones de 'EcoFuture' a 50€ atraído por el diseño vanguardista de su web y su CEO ecologista. Hoy la acción cae a 20€ al saberse que no tienen ingresos reales.",
+                        actions: [
+                            { text: "A) Mantenerla porque la compraste a 50€ y vender a 20€ sería aceptar el fracaso.", impact: "anchoring" },
+                            { text: "B) Venderla asumiendo que invertiste por motivos estéticos y no financieros.", impact: "rational" },
+                            { text: "C) Comprar más porque confías ciegamente en la visión del CEO a pesar de la quiebra inminente.", impact: "halo" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    },
+                    {
+                        context: "Un influencer promete que la criptomoneda 'Dogemoon' subirá un x10. Todos en los comentarios muestran pantallazos de sus ganancias.",
+                        actions: [
+                            { text: "A) Inviertes los 500€ que estabas ahorrando a largo plazo para dar un pelotazo rápido hoy.", impact: "hyperbolic" },
+                            { text: "B) Ignoras la moda. Tu dinero está diversificado y automatizado según tu plan.", impact: "rational" },
+                            { text: "C) Inviertes por el FOMO, si tanta gente está comprando, no pueden estar todos equivocados.", impact: "herd" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    }
+                ],
+
+                initApp() {
+                    this.questions.forEach(q => {
+                        let maxWeight = 0;
+                        q.options.forEach(opt => {
+                            if (opt.weight > maxWeight) maxWeight = opt.weight;
+                        });
+                        this.maxScores[q.options[0].bias] += maxWeight;
+                    });
+
+                    const savedData = localStorage.getItem('decisionLabData');
+                    if (savedData) {
+                        const parsed = JSON.parse(savedData);
+                        this.calculatedBiases = parsed.biases || {};
+                        this.userPlan = parsed.plan || this.userPlan;
+                        if (Object.keys(this.calculatedBiases).length > 0) {
+                            this.quizCompleted = true;
+                            this.currentTab = 'results';
+                            setTimeout(() => this.renderRadarChart(), 100);
+                        }
+                    }
+
+                    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        this.isDarkMode = true;
+                    } else {
+                        this.isDarkMode = false;
+                    }
+                },
+
+                toggleTheme() {
+                    this.isDarkMode = !this.isDarkMode;
+                    localStorage.theme = this.isDarkMode ? 'dark' : 'light';
+                    if (this.currentTab === 'results' && this.quizCompleted) {
+                        setTimeout(() => this.renderRadarChart(), 50); 
+                    }
+                },
+
+                changeTab(tabId) {
+                    this.currentTab = tabId;
+                    if (tabId === 'results' && this.quizCompleted) {
+                        setTimeout(() => this.renderRadarChart(), 50);
+                    }
+                },
+
+                startQuiz() {
+                    this.quizStarted = true;
+                    this.currentQuestionIndex = 0;
+                    Object.keys(this.scores).forEach(k => this.scores[k] = 0);
+                },
+
+                selectAnswer(option) {
+                    this.scores[option.bias] += option.weight;
+                    
+                    if (this.currentQuestionIndex < this.questions.length - 1) {
+                        this.currentQuestionIndex++;
+                    } else {
+                        this.finishQuiz();
+                    }
+                },
+
+                finishQuiz() {
+                    this.quizCompleted = true;
+                    Object.keys(this.scores).forEach(key => {
+                        const max = this.maxScores[key];
+                        this.calculatedBiases[key] = max > 0 ? Math.round((this.scores[key] / max) * 100) : 0;
+                        if(this.calculatedBiases[key] === 0) this.calculatedBiases[key] = 10; 
+                    });
+                    this.saveData();
+                    this.changeTab('results');
+                },
+
+                resetQuiz() {
+                    localStorage.removeItem('decisionLabData');
+                    this.quizCompleted = false;
+                    this.quizStarted = false;
+                    this.currentQuestionIndex = 0;
+                    this.calculatedBiases = {};
+                    Object.keys(this.scores).forEach(k => this.scores[k] = 0);
+                    this.resetSimulator();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
+                saveData() {
+                    localStorage.setItem('decisionLabData', JSON.stringify({
+                        biases: this.calculatedBiases,
+                        plan: this.userPlan
+                    }));
+                },
+
+                renderRadarChart() {
+                    if (this.chartInstance) {
+                        this.chartInstance.destroy();
+                    }
+                    const ctx = document.getElementById('biasRadarChart').getContext('2d');
+                    
+                    const labels = Object.keys(this.calculatedBiases).map(k => this.biasDefinitions[k].name);
+                    const data = Object.values(this.calculatedBiases);
+                    
+                    const textColor = this.isDarkMode ? '#e2e8f0' : '#475569';
+                    const gridColor = this.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+                    this.chartInstance = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Nivel de Vulnerabilidad (%)',
+                                data: data,
+                                backgroundColor: 'rgba(20, 184, 166, 0.4)',
+                                borderColor: 'rgba(20, 184, 166, 1)',
+                                pointBackgroundColor: 'rgba(13, 148, 136, 1)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgba(20, 184, 166, 1)',
+                                borderWidth: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                r: {
+                                    angleLines: { color: gridColor },
+                                    grid: { color: gridColor },
+                                    pointLabels: {
+                                        color: textColor,
+                                        font: { family: 'Inter', size: 11, weight: '600' }
+                                    },
+                                    ticks: { display: false, min: 0, max: 100 }
+                                }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                },
+
+                getSeverityColor(score) {
+                    if (score >= 70) return 'bg-red-500';
+                    if (score >= 40) return 'bg-yellow-500';
+                    return 'bg-green-500';
+                },
+
+                getSeverityBg(score) {
+                    if (score >= 70) return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400';
+                    if (score >= 40) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400';
+                    return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400';
+                },
+
+                handleScenarioAnswer(scenarioIndex, action) {
+                    const scenario = this.scenarios[scenarioIndex];
+                    scenario.answered = true;
+
+                    if (action.impact === 'rational') {
+                        scenario.feedbackStyle = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-400';
+                        scenario.feedbackIcon = 'fa-solid fa-check-circle';
+                        scenario.feedbackText = 'Decisión correcta y automatizada. Has logrado sortear el estrés emocional.';
+                    } else {
+                        const userBiasScore = this.calculatedBiases[action.impact] || 0;
+                        let warningLevel = '';
+                        
+                        if (userBiasScore >= 70) {
+                            warningLevel = '<strong>¡CUIDADO! Esta es tu zona de mayor vulnerabilidad según la CNMV.</strong> ';
+                            scenario.feedbackStyle = 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400';
+                        } else {
+                            scenario.feedbackStyle = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400';
+                        }
+                        
+                        scenario.feedbackIcon = 'fa-solid fa-triangle-exclamation';
+                        scenario.feedbackText = `${warningLevel} Víctima de: <strong>${this.biasDefinitions[action.impact].name}</strong>. Revisa la estandarización de tus procesos.`;
+                    }
+                },
+
+                resetSimulator() {
+                    this.scenarios.forEach(s => s.answered = false);
+                },
+
+                getPersonalizedRuleSuggestion() {
+                    if(!this.quizCompleted) return "";
+                    let maxBias = Object.keys(this.calculatedBiases).reduce((a, b) => this.calculatedBiases[a] > this.calculatedBiases[b] ? a : b);
+                    
+                    const rules = {
+                        overconfidence: "Regla CNMV (Diversificar): Indexa al menos el 80% de tu capital a fondos pasivos globales y limita tu selección de acciones individuales.",
+                        loss_aversion: "Regla CNMV (Estandarizar): Fija un Stop-Loss del 10% mecánico al comprar. Si salta, vende sin pensarlo y evita el estrés.",
+                        confirmation: "Regla CNMV (Estandarizar): Antes de invertir en una empresa, busca y guarda un informe bajista que critique tu idea.",
+                        anchoring: "Regla CNMV (Estandarizar): Borra de tu mente el precio de compra. Evalúa tu activo periódicamente: '¿Compraría esto hoy a este precio?'.",
+                        herd: "Regla CNMV (Automatizar): Aléjate del ruido de foros y cuñados. Programa transferencias mensuales (DCA) al margen de las modas.",
+                        halo: "Regla CNMV (Diversificar): Exige datos duros. No inviertas más del 5% de tu cartera en una empresa solo porque su CEO o producto te gusta.",
+                        control_illusion: "Regla CNMV (Automatizar): Deja de mirar gráficos a diario. Las transferencias automáticas a final de mes rinden más que intentar predecir el mercado.",
+                        hyperbolic: "Regla CNMV (Automatizar): No retires tus ganancias del 5%. Programa aportaciones periódicas y deja que el interés compuesto trabaje 20 años."
+                    };
+
+                    return rules[maxBias] || "Regla CNMV: Automatiza tus aportaciones, estandariza tus reglas de salida y diversifica tu cartera.";
+                },
+
+                exportPlan() {
+                    this.saveData(); 
+                    const blob = new Blob([this.userPlan], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const date = new Date().toISOString().split('T')[0];
+                    link.download = `DecisionLab_Plan_CNMV_${date}.txt`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
