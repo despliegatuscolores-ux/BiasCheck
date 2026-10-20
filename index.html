@@ -393,7 +393,7 @@
                 quizCompleted: false,
                 currentQuestionIndex: 0,
                 chartInstance: null,
-                userPlan: "REGLAS DE INVERSIÓN ESTRUCTURADAS\n=================================\n\n1. \n2. \n3. ",
+                userPlan: "REGLAS DE INVERSIÓN (Basado en recomendaciones CNMV)\n======================================================\n\n1. ESTANDARIZAR: Mis reglas de venta en caso de caída son...\n2. AUTOMATIZAR: Todos los días [DÍA] invertiré automáticamente [CANTIDAD]€ en...\n3. DIVERSIFICAR: Ninguna acción individual representará más del [X]% de mi cartera.\n4. ",
                 
                 tabs: [
                     { id: 'diagnostic', name: 'Diagnóstico', icon: 'fa-solid fa-list-check' },
@@ -403,14 +403,350 @@
                     { id: 'plan', name: 'Plan de Acción', icon: 'fa-solid fa-file-signature' }
                 ],
 
+                // Taxonomía estricta de la CNMV
                 biasDefinitions: {
-                    loss_aversion: { name: 'Aversión a la Pérdida', desc: 'El dolor psicológico de perder dinero es el doble de intenso que la alegría de ganar la misma cantidad.', example: 'Vender fondos sólidos durante un pánico temporal en el mercado para "cortar el dolor".' },
-                    confirmation: { name: 'Sesgo de Confirmación', desc: 'Buscar, interpretar y recordar información que confirme preconcepciones, ignorando datos contrarios.', example: 'Solo leer foros de inversores que apoyan ciegamente la criptomoneda que ya compraste.' },
-                    disposition: { name: 'Efecto Disposición', desc: 'Tendencia a vender activos con ganancias demasiado pronto y mantener activos con pérdidas demasiado tiempo.', example: 'Vender acciones de Apple que suben un 10% para asegurar ganancia, pero conservar una acción tecnológica basura que cayó un 40% esperando "quedar a mano".' },
-                    sunk_cost: { name: 'Falacia del Costo Hundido', desc: 'Continuar invirtiendo dinero, tiempo o esfuerzo en un proyecto perdedor solo por lo que ya se ha invertido.', example: 'Inyectar más dinero a un negocio que quiebra mes a mes "porque ya he metido 50.000€ en él".' },
-                    recency: { name: 'Sesgo de Actualidad', desc: 'Dar mayor peso a los eventos más recientes, asumiendo que las tendencias actuales continuarán indefinidamente.', example: 'Asumir que el mercado inmobiliario nunca caerá porque ha subido ininterrumpidamente los últimos 3 años.' },
-                    overconfidence: { name: 'Exceso de Confianza', desc: 'Sobreestimar las propias habilidades analíticas y predictivas financieras frente al promedio.', example: 'Hacer day-trading creyendo que puedes vencer sistemáticamente a algoritmos institucionales y analistas de Wall Street.' },
-                    herd: { name: 'Comportamiento de Rebaño', desc: 'Imitar las acciones de un grupo mayoritario (amigos, redes sociales) asumiendo que ellos "saben algo que tú no".', example: 'Comprar una acción meme solo porque es Trending Topic y tus compañeros de trabajo hablan de ella.' }
+                    overconfidence: { name: 'Exceso de confianza', desc: 'Creer que se sabe más de lo que realmente se sabe, sobreestimando ganancias e infravalorando riesgos.', example: 'Hacer day-trading pensando que puedes batir al mercado consistentemente por tu "intuición".' },
+                    loss_aversion: { name: 'Aversión a las pérdidas', desc: 'Sentir el dolor de perder dinero con más intensidad que la alegría de ganarlo.', example: 'Mantener activos en pérdidas esperando "empatar", o vender rápido lo que sube por miedo a perder lo ganado.' },
+                    confirmation: { name: 'Sesgo de confirmación', desc: 'Buscar únicamente noticias o gráficos que refuercen la idea de que tu inversión va bien.', example: 'Ignorar advertencias sobre la deuda de una empresa y solo leer foros de fans de la acción.' },
+                    anchoring: { name: 'Sesgo de anclaje', desc: 'Tomar un dato inicial (como el precio de compra) como referencia absoluta.', example: 'Negarte a vender una acción que ha empeorado porque "yo la compré a 50 y no la vendo por menos".' },
+                    herd: { name: 'Efecto manada (Prueba Social)', desc: 'Comprar o vender un activo solo porque "todo el mundo lo está haciendo" o por FOMO.', example: 'Invertir en una criptomoneda desconocida solo porque tus amigos presumen de ella en redes.' },
+                    halo: { name: 'Efecto halo', desc: 'Juzgar la calidad de una empresa basándose en un único factor superficial.', example: 'Comprar acciones porque el CEO es muy carismático o el producto tiene un diseño bonito, sin mirar sus finanzas.' },
+                    control_illusion: { name: 'Ilusión de control', desc: 'Pensar que se puede influir en el mercado o en el rumbo de un activo aleatorio.', example: 'Creer que trazar líneas en un gráfico te permite controlar y predecir exactamente lo que hará el precio.' },
+                    hyperbolic: { name: 'Descuento hiperbólico', desc: 'Preferir una recompensa pequeña e inmediata en lugar de esperar mayores beneficios a largo plazo.', example: 'Retirar unas ganancias del 5% hoy para comprar un capricho, arruinando el interés compuesto de tu jubilación.' }
+                },
+
+                scores: { overconfidence: 0, loss_aversion: 0, confirmation: 0, anchoring: 0, herd: 0, halo: 0, control_illusion: 0, hyperbolic: 0 },
+                maxScores: { overconfidence: 0, loss_aversion: 0, confirmation: 0, anchoring: 0, herd: 0, halo: 0, control_illusion: 0, hyperbolic: 0 },
+                calculatedBiases: {},
+
+                // 12 Preguntas alineadas a los sesgos de la CNMV
+                questions: [
+                    {
+                        text: "1. ¿Cómo calificas tu capacidad para elegir en qué acciones específicas invertir frente a un fondo indexado global?",
+                        options: [
+                            { text: "Confío plenamente en mi criterio para encontrar empresas ganadoras y batir al mercado.", bias: 'overconfidence', weight: 10 },
+                            { text: "Asumo que es muy difícil ganarle al mercado; prefiero diversificar en fondos.", bias: 'overconfidence', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "2. Tu cartera global ha caído un 15% en un mes por pánico general en el mercado. ¿Cuál es tu reacción natural?",
+                        options: [
+                            { text: "Me genera mucha angustia, considero vender para detener la sangría.", bias: 'loss_aversion', weight: 10 },
+                            { text: "No me afecta demasiado, es parte de la volatilidad esperada. Incluso aporto más.", bias: 'loss_aversion', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "3. Compraste acciones de una empresa tecnológica porque admiras a su CEO, que es famoso y muy visionario en redes sociales.",
+                        options: [
+                            { text: "Es un motivo de peso. Un líder inspirador garantiza el éxito financiero a largo plazo.", bias: 'halo', weight: 10 },
+                            { text: "El CEO es marketing. Solo invierto si el balance de resultados y la deuda son sólidos.", bias: 'halo', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "4. Estás investigando una empresa en la que ya has invertido mucho dinero. Al leer análisis en internet:",
+                        options: [
+                            { text: "Inconscientemente busco y me detengo en artículos que dicen que la acción va a subir.", bias: 'confirmation', weight: 10 },
+                            { text: "Busco activamente los informes que recomiendan 'Vender' para ver si me he equivocado.", bias: 'confirmation', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "5. Compraste una acción a 100€. Tras un mal año por problemas de la empresa, cotiza a 40€. Has analizado que su modelo de negocio está obsoleto.",
+                        options: [
+                            { text: "La mantengo. No quiero materializar la pérdida y espero que vuelva a los 100€ originales.", bias: 'anchoring', weight: 10 },
+                            { text: "La vendo a 40€. Me olvido del precio que pagué y uso ese dinero en algo mejor.", bias: 'anchoring', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "6. En las noticias y en tu grupo de amigos no se habla de otra cosa: un nuevo activo está haciendo rica a mucha gente rápido.",
+                        options: [
+                            { text: "Meto algo de dinero rápidamente. No quiero ser el único que se quede fuera (FOMO).", bias: 'herd', weight: 10 },
+                            { text: "Me mantengo al margen. Si está en las noticias, la oportunidad real ya pasó.", bias: 'herd', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "7. Tu inversión ha generado un modesto +5% en pocos meses. Tienes un plan a 10 años, pero...",
+                        options: [
+                            { text: "Saco las ganancias ahora mismo para darme un capricho o asegurar el verde.", bias: 'hyperbolic', weight: 10 },
+                            { text: "No toco nada. Entiendo que la magia del interés compuesto necesita décadas.", bias: 'hyperbolic', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "8. Pasas horas al día mirando gráficos de velas y trazando líneas de tendencia en tu plataforma.",
+                        options: [
+                            { text: "Siento que haciendo esto tengo más control sobre mis resultados financieros.", bias: 'control_illusion', weight: 10 },
+                            { text: "Sé que esto no influye en nada, el mercado hace lo que quiere. Prefiero automatizar.", bias: 'control_illusion', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "9. Un amigo te recomienda una app de inversión porque 'su interfaz es súper moderna y tiene modo oscuro'.",
+                        options: [
+                            { text: "La pruebo y meto dinero. Si la app es buena, sus productos de inversión también lo serán.", bias: 'halo', weight: 10 },
+                            { text: "La interfaz da igual. Reviso qué comisiones ocultan y quién los regula antes de usarlos.", bias: 'halo', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "10. La empresa que posees acaba de perder un juicio multimillonario y sus fundamentos cambian radicalmente.",
+                        options: [
+                            { text: "Justifico la mala noticia pensando que el mercado exagera y sigo aferrado a mi idea original.", bias: 'confirmation', weight: 10 },
+                            { text: "Acepto que mi tesis inicial se rompió y actualizo mi estrategia inmediatamente.", bias: 'confirmation', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "11. El mercado bursátil subió un 20% el año pasado. Al planificar tus finanzas para los próximos 3 años...",
+                        options: [
+                            { text: "Asumo que ganaré dinero y retiro mis ahorros para invertirlos todos juntos hoy mismo.", bias: 'overconfidence', weight: 10 },
+                            { text: "Asumo rendimientos medios históricos (7%) y aporto periódicamente por si el mercado cae.", bias: 'overconfidence', weight: 0 }
+                        ]
+                    },
+                    {
+                        text: "12. Tienes una acción que compraste a 20€. Hoy vale 25€, pero las perspectivas de la empresa son mediocres.",
+                        options: [
+                            { text: "La vendo rápido para llevarme esos 5€ de ganancia antes de que desaparezcan.", bias: 'loss_aversion', weight: 10 }, // Aversión a perder lo ganado
+                            { text: "La vendo porque es mediocre, no por el anclaje a los 5€ de beneficio.", bias: 'loss_aversion', weight: 0 }
+                        ]
+                    }
+                ],
+
+                scenarios: [
+                    {
+                        context: "Noticia: El Banco Central anuncia una política que desploma tu inversión estrella un 8% en un día. Tu plan era a 15 años.",
+                        actions: [
+                            { text: "A) Vender todo inmediatamente para evitar perder más.", impact: "loss_aversion" },
+                            { text: "B) Cerrar la pantalla y dejar que la aportación automatizada actúe el mes que viene.", impact: "rational" },
+                            { text: "C) Sentarte a trazar líneas en el gráfico para 'adivinar' dónde rebotará.", impact: "control_illusion" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    },
+                    {
+                        context: "Has comprado acciones de 'EcoFuture' a 50€ atraído por el diseño vanguardista de su web y su CEO ecologista. Hoy la acción cae a 20€ al saberse que no tienen ingresos reales.",
+                        actions: [
+                            { text: "A) Mantenerla porque la compraste a 50€ y vender a 20€ sería aceptar el fracaso.", impact: "anchoring" },
+                            { text: "B) Venderla asumiendo que invertiste por motivos estéticos y no financieros.", impact: "rational" },
+                            { text: "C) Comprar más porque confías ciegamente en la visión del CEO a pesar de la quiebra inminente.", impact: "halo" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    },
+                    {
+                        context: "Un influencer promete que la criptomoneda 'Dogemoon' subirá un x10. Todos en los comentarios muestran pantallazos de sus ganancias.",
+                        actions: [
+                            { text: "A) Inviertes los 500€ que estabas ahorrando a largo plazo para dar un pelotazo rápido hoy.", impact: "hyperbolic" },
+                            { text: "B) Ignoras la moda. Tu dinero está diversificado y automatizado según tu plan.", impact: "rational" },
+                            { text: "C) Inviertes por el FOMO, si tanta gente está comprando, no pueden estar todos equivocados.", impact: "herd" }
+                        ],
+                        answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
+                    }
+                ],
+
+                initApp() {
+                    this.questions.forEach(q => {
+                        let maxWeight = 0;
+                        q.options.forEach(opt => {
+                            if (opt.weight > maxWeight) maxWeight = opt.weight;
+                        });
+                        this.maxScores[q.options[0].bias] += maxWeight;
+                    });
+
+                    const savedData = localStorage.getItem('decisionLabData');
+                    if (savedData) {
+                        const parsed = JSON.parse(savedData);
+                        this.calculatedBiases = parsed.biases || {};
+                        this.userPlan = parsed.plan || this.userPlan;
+                        if (Object.keys(this.calculatedBiases).length > 0) {
+                            this.quizCompleted = true;
+                            this.currentTab = 'results';
+                            setTimeout(() => this.renderRadarChart(), 100);
+                        }
+                    }
+
+                    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        this.isDarkMode = true;
+                    } else {
+                        this.isDarkMode = false;
+                    }
+                },
+
+                toggleTheme() {
+                    this.isDarkMode = !this.isDarkMode;
+                    localStorage.theme = this.isDarkMode ? 'dark' : 'light';
+                    if (this.currentTab === 'results' && this.quizCompleted) {
+                        setTimeout(() => this.renderRadarChart(), 50); 
+                    }
+                },
+
+                changeTab(tabId) {
+                    this.currentTab = tabId;
+                    if (tabId === 'results' && this.quizCompleted) {
+                        setTimeout(() => this.renderRadarChart(), 50);
+                    }
+                },
+
+                startQuiz() {
+                    this.quizStarted = true;
+                    this.currentQuestionIndex = 0;
+                    Object.keys(this.scores).forEach(k => this.scores[k] = 0);
+                },
+
+                selectAnswer(option) {
+                    this.scores[option.bias] += option.weight;
+                    
+                    if (this.currentQuestionIndex < this.questions.length - 1) {
+                        this.currentQuestionIndex++;
+                    } else {
+                        this.finishQuiz();
+                    }
+                },
+
+                finishQuiz() {
+                    this.quizCompleted = true;
+                    Object.keys(this.scores).forEach(key => {
+                        const max = this.maxScores[key];
+                        this.calculatedBiases[key] = max > 0 ? Math.round((this.scores[key] / max) * 100) : 0;
+                        if(this.calculatedBiases[key] === 0) this.calculatedBiases[key] = 10; 
+                    });
+                    this.saveData();
+                    this.changeTab('results');
+                },
+
+                resetQuiz() {
+                    localStorage.removeItem('decisionLabData');
+                    this.quizCompleted = false;
+                    this.quizStarted = false;
+                    this.currentQuestionIndex = 0;
+                    this.calculatedBiases = {};
+                    Object.keys(this.scores).forEach(k => this.scores[k] = 0);
+                    this.resetSimulator();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
+                saveData() {
+                    localStorage.setItem('decisionLabData', JSON.stringify({
+                        biases: this.calculatedBiases,
+                        plan: this.userPlan
+                    }));
+                },
+
+                renderRadarChart() {
+                    if (this.chartInstance) {
+                        this.chartInstance.destroy();
+                    }
+                    const ctx = document.getElementById('biasRadarChart').getContext('2d');
+                    
+                    const labels = Object.keys(this.calculatedBiases).map(k => this.biasDefinitions[k].name);
+                    const data = Object.values(this.calculatedBiases);
+                    
+                    const textColor = this.isDarkMode ? '#e2e8f0' : '#475569';
+                    const gridColor = this.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+                    this.chartInstance = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Nivel de Vulnerabilidad (%)',
+                                data: data,
+                                backgroundColor: 'rgba(20, 184, 166, 0.4)',
+                                borderColor: 'rgba(20, 184, 166, 1)',
+                                pointBackgroundColor: 'rgba(13, 148, 136, 1)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgba(20, 184, 166, 1)',
+                                borderWidth: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                r: {
+                                    angleLines: { color: gridColor },
+                                    grid: { color: gridColor },
+                                    pointLabels: {
+                                        color: textColor,
+                                        font: { family: 'Inter', size: 11, weight: '600' }
+                                    },
+                                    ticks: { display: false, min: 0, max: 100 }
+                                }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                },
+
+                getSeverityColor(score) {
+                    if (score >= 70) return 'bg-red-500';
+                    if (score >= 40) return 'bg-yellow-500';
+                    return 'bg-green-500';
+                },
+
+                getSeverityBg(score) {
+                    if (score >= 70) return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400';
+                    if (score >= 40) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400';
+                    return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400';
+                },
+
+                handleScenarioAnswer(scenarioIndex, action) {
+                    const scenario = this.scenarios[scenarioIndex];
+                    scenario.answered = true;
+
+                    if (action.impact === 'rational') {
+                        scenario.feedbackStyle = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-400';
+                        scenario.feedbackIcon = 'fa-solid fa-check-circle';
+                        scenario.feedbackText = 'Decisión correcta y automatizada. Has logrado sortear el estrés emocional.';
+                    } else {
+                        const userBiasScore = this.calculatedBiases[action.impact] || 0;
+                        let warningLevel = '';
+                        
+                        if (userBiasScore >= 70) {
+                            warningLevel = '<strong>¡CUIDADO! Esta es tu zona de mayor vulnerabilidad según la CNMV.</strong> ';
+                            scenario.feedbackStyle = 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400';
+                        } else {
+                            scenario.feedbackStyle = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400';
+                        }
+                        
+                        scenario.feedbackIcon = 'fa-solid fa-triangle-exclamation';
+                        scenario.feedbackText = `${warningLevel} Víctima de: <strong>${this.biasDefinitions[action.impact].name}</strong>. Revisa la estandarización de tus procesos.`;
+                    }
+                },
+
+                resetSimulator() {
+                    this.scenarios.forEach(s => s.answered = false);
+                },
+
+                getPersonalizedRuleSuggestion() {
+                    if(!this.quizCompleted) return "";
+                    let maxBias = Object.keys(this.calculatedBiases).reduce((a, b) => this.calculatedBiases[a] > this.calculatedBiases[b] ? a : b);
+                    
+                    const rules = {
+                        overconfidence: "Regla CNMV (Diversificar): Indexa al menos el 80% de tu capital a fondos pasivos globales y limita tu selección de acciones individuales.",
+                        loss_aversion: "Regla CNMV (Estandarizar): Fija un Stop-Loss del 10% mecánico al comprar. Si salta, vende sin pensarlo y evita el estrés.",
+                        confirmation: "Regla CNMV (Estandarizar): Antes de invertir en una empresa, busca y guarda un informe bajista que critique tu idea.",
+                        anchoring: "Regla CNMV (Estandarizar): Borra de tu mente el precio de compra. Evalúa tu activo periódicamente: '¿Compraría esto hoy a este precio?'.",
+                        herd: "Regla CNMV (Automatizar): Aléjate del ruido de foros y cuñados. Programa transferencias mensuales (DCA) al margen de las modas.",
+                        halo: "Regla CNMV (Diversificar): Exige datos duros. No inviertas más del 5% de tu cartera en una empresa solo porque su CEO o producto te gusta.",
+                        control_illusion: "Regla CNMV (Automatizar): Deja de mirar gráficos a diario. Las transferencias automáticas a final de mes rinden más que intentar predecir el mercado.",
+                        hyperbolic: "Regla CNMV (Automatizar): No retires tus ganancias del 5%. Programa aportaciones periódicas y deja que el interés compuesto trabaje 20 años."
+                    };
+
+                    return rules[maxBias] || "Regla CNMV: Automatiza tus aportaciones, estandariza tus reglas de salida y diversifica tu cartera.";
+                },
+
+                exportPlan() {
+                    this.saveData(); 
+                    const blob = new Blob([this.userPlan], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const date = new Date().toISOString().split('T')[0];
+                    link.download = `DecisionLab_Plan_CNMV_${date}.txt`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+            }
+        }
+
+        
                 },
 
                 // Raw scores
@@ -541,233 +877,6 @@
                         answered: false, feedbackStyle: '', feedbackIcon: '', feedbackText: ''
                     }
                 ],
-
-                initApp() {
-                    // Inicializar maxScores
-                    this.questions.forEach(q => {
-                        let maxWeight = 0;
-                        q.options.forEach(opt => {
-                            if (opt.weight > maxWeight) maxWeight = opt.weight;
-                        });
-                        this.maxScores[q.options[0].bias] += maxWeight;
-                    });
-
-                    // Check LocalStorage
-                    const savedData = localStorage.getItem('decisionLabData');
-                    if (savedData) {
-                        const parsed = JSON.parse(savedData);
-                        this.calculatedBiases = parsed.biases || {};
-                        this.userPlan = parsed.plan || this.userPlan;
-                        if (Object.keys(this.calculatedBiases).length > 0) {
-                            this.quizCompleted = true;
-                            this.currentTab = 'results';
-                            setTimeout(() => this.renderRadarChart(), 100);
-                        }
-                    }
-
-                    // Check theme preference
-                    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                        this.isDarkMode = true;
-                    } else {
-                        this.isDarkMode = false;
-                    }
-                },
-
-                toggleTheme() {
-                    this.isDarkMode = !this.isDarkMode;
-                    localStorage.theme = this.isDarkMode ? 'dark' : 'light';
-                    if (this.currentTab === 'results' && this.quizCompleted) {
-                        setTimeout(() => this.renderRadarChart(), 50); // Redibujar gráfico con nuevos colores
-                    }
-                },
-
-                changeTab(tabId) {
-                    this.currentTab = tabId;
-                    if (tabId === 'results' && this.quizCompleted) {
-                        setTimeout(() => this.renderRadarChart(), 50);
-                    }
-                },
-
-                startQuiz() {
-                    this.quizStarted = true;
-                    this.currentQuestionIndex = 0;
-                    // Reset scores
-                    Object.keys(this.scores).forEach(k => this.scores[k] = 0);
-                },
-
-                selectAnswer(option) {
-                    this.scores[option.bias] += option.weight;
-                    
-                    if (this.currentQuestionIndex < this.questions.length - 1) {
-                        this.currentQuestionIndex++;
-                    } else {
-                        this.finishQuiz();
-                    }
-                },
-
-                finishQuiz() {
-                    this.quizCompleted = true;
-                    // Calculate percentages
-                    Object.keys(this.scores).forEach(key => {
-                        const max = this.maxScores[key];
-                        this.calculatedBiases[key] = max > 0 ? Math.round((this.scores[key] / max) * 100) : 0;
-                        // Add some base noise if 0, so chart doesn't look completely empty (clinical baseline)
-                        if(this.calculatedBiases[key] === 0) this.calculatedBiases[key] = 10; 
-                    });
-
-                    this.saveData();
-                    this.changeTab('results');
-                },
-
-                resetQuiz() {
-                    // Borramos la memoria local y reseteamos el estado
-                    localStorage.removeItem('decisionLabData');
-                    this.quizCompleted = false;
-                    this.quizStarted = false;
-                    this.currentQuestionIndex = 0;
-                    this.calculatedBiases = {};
-                    Object.keys(this.scores).forEach(k => this.scores[k] = 0);
-                    this.resetSimulator();
-                    
-                    // Volvemos al inicio del diagnóstico
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                },
-
-                saveData() {
-                    localStorage.setItem('decisionLabData', JSON.stringify({
-                        biases: this.calculatedBiases,
-                        plan: this.userPlan
-                    }));
-                },
-
-                renderRadarChart() {
-                    if (this.chartInstance) {
-                        this.chartInstance.destroy();
-                    }
-
-                    const ctx = document.getElementById('biasRadarChart').getContext('2d');
-                    
-                    const labels = Object.keys(this.calculatedBiases).map(k => this.biasDefinitions[k].name);
-                    const data = Object.values(this.calculatedBiases);
-                    
-                    const textColor = this.isDarkMode ? '#e2e8f0' : '#475569';
-                    const gridColor = this.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-
-                    this.chartInstance = new Chart(ctx, {
-                        type: 'radar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Nivel de Vulnerabilidad (%)',
-                                data: data,
-                                backgroundColor: 'rgba(20, 184, 166, 0.4)', // Corporate 500 alpha
-                                borderColor: 'rgba(20, 184, 166, 1)',
-                                pointBackgroundColor: 'rgba(13, 148, 136, 1)',
-                                pointBorderColor: '#fff',
-                                pointHoverBackgroundColor: '#fff',
-                                pointHoverBorderColor: 'rgba(20, 184, 166, 1)',
-                                borderWidth: 2,
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                r: {
-                                    angleLines: { color: gridColor },
-                                    grid: { color: gridColor },
-                                    pointLabels: {
-                                        color: textColor,
-                                        font: { family: 'Inter', size: 11, weight: '600' }
-                                    },
-                                    ticks: {
-                                        display: false, // Ocultar números intermedios para limpiar UI
-                                        min: 0,
-                                        max: 100
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: { display: false }
-                            }
-                        }
-                    });
-                },
-
-                getSeverityColor(score) {
-                    if (score >= 70) return 'bg-red-500';
-                    if (score >= 40) return 'bg-yellow-500';
-                    return 'bg-green-500';
-                },
-
-                getSeverityBg(score) {
-                    if (score >= 70) return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400';
-                    if (score >= 40) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400';
-                    return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400';
-                },
-
-                handleScenarioAnswer(scenarioIndex, action) {
-                    const scenario = this.scenarios[scenarioIndex];
-                    scenario.answered = true;
-
-                    if (action.impact === 'rational') {
-                        scenario.feedbackStyle = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-400';
-                        scenario.feedbackIcon = 'fa-solid fa-check-circle';
-                        scenario.feedbackText = 'Decisión Sistema 2 (Analítica). Has logrado sortear el estrés emocional del escenario aplicando raciocinio.';
-                    } else {
-                        // Comprobar si el sesgo del error es alto en el usuario
-                        const userBiasScore = this.calculatedBiases[action.impact] || 0;
-                        let warningLevel = '';
-                        
-                        if (userBiasScore >= 70) {
-                            warningLevel = '<strong>¡CUIDADO! Esta es tu zona de mayor vulnerabilidad.</strong> ';
-                            scenario.feedbackStyle = 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400';
-                        } else {
-                            scenario.feedbackStyle = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400';
-                        }
-                        
-                        scenario.feedbackIcon = 'fa-solid fa-triangle-exclamation';
-                        scenario.feedbackText = `${warningLevel} Has sido víctima del <strong>${this.biasDefinitions[action.impact].name}</strong>. Revisar Toolkit para mitigación.`;
-                    }
-                },
-
-                resetSimulator() {
-                    this.scenarios.forEach(s => s.answered = false);
-                },
-
-                getPersonalizedRuleSuggestion() {
-                    if(!this.quizCompleted) return "";
-                    // Encontrar el sesgo más alto
-                    let maxBias = Object.keys(this.calculatedBiases).reduce((a, b) => this.calculatedBiases[a] > this.calculatedBiases[b] ? a : b);
-                    
-                    const rules = {
-                        loss_aversion: "Obligatorio: Establecer órdenes de stop-loss automatizadas en el momento de la compra para que la máquina venda por ti sin intervención emocional.",
-                        confirmation: "Obligatorio: Buscar 3 tesis de inversión en contra (bajistas) antes de ejecutar cualquier compra a largo plazo.",
-                        disposition: "Obligatorio: Revisar el portafolio basado en valoraciones fundamentales actuales, no en el precio de compra original.",
-                        sunk_cost: "Obligatorio: Evaluar activos perdedores con la pregunta: 'Si hoy tuviera el capital en efectivo, ¿compraría este activo al precio actual?'. Si es no, vender.",
-                        recency: "Obligatorio: Analizar siempre gráficos en marcos temporales amplios (5-10 años) antes de asumir que una tendencia de corto plazo durará.",
-                        overconfidence: "Obligatorio: Indexar al menos el 80% del capital a fondos pasivos (ej. SP500, MSCI World) y limitar el trading táctico al 20%.",
-                        herd: "Obligatorio: Aplicar el Cooling-off period (72 horas) para cualquier inversión que provenga de una recomendación social o mediática."
-                    };
-
-                    return rules[maxBias] || "Automatiza tus finanzas para minimizar la fricción en la toma de decisiones diaria.";
-                },
-
-                exportPlan() {
-                    this.saveData(); // Save textarea content first
-                    const blob = new Blob([this.userPlan], { type: 'text/plain;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    const date = new Date().toISOString().split('T')[0];
-                    link.download = `DecisionLab_Plan_${date}.txt`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                }
-            }
-        }
     </script>
 </body>
 </html>
